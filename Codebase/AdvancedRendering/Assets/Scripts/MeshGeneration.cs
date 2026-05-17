@@ -1,4 +1,3 @@
-using NUnit.Framework.Constraints;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,11 +7,7 @@ public class MeshGeneration : MonoBehaviour
     private ChannelGuide guide;
     private MeshFilter meshFilter;
     private Mesh mesh;
-
-    [SerializeField] float width = 2.5f;
-    [SerializeField] float wallHeight = 1f;
-    [SerializeField] float verticalOffset = 0.4f;
-    [SerializeField] float innerInset = 0.5f; 
+    private bool outdatedMesh = false;
 
     void Awake()
     {
@@ -27,7 +22,16 @@ public class MeshGeneration : MonoBehaviour
 
     void Update()
     {
+        if (!outdatedMesh)
+            return;
+
         BuildMesh();
+        outdatedMesh = false;
+    }
+
+    public void SetMesh()
+    {
+        outdatedMesh = true;
     }
 
     public void BuildMesh()
@@ -45,19 +49,20 @@ public class MeshGeneration : MonoBehaviour
         {
             Vector3 pos = transform.InverseTransformPoint(guide.nodes[i].transform.position);
             Vector3 forward = GetForward(i);
-            Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
+            Vector3 referenceUp = Mathf.Abs(Vector3.Dot(forward, Vector3.up)) > 0.95f ? Vector3.forward : Vector3.up;
+            Vector3 right = Vector3.Cross(referenceUp, forward).normalized;
 
             CreateSection(vertices, pos, right);
         }
 
-        int crosssSectionVertices = 6;
+        int crossSectionVertices = 6;
 
         for (int i = 0; i < guide.nodes.Count - 1; i++)
         {
-            int sectionA = i * crosssSectionVertices;
-            int sectionB = (i + 1) * crosssSectionVertices;
+            int sectionA = i * crossSectionVertices;
+            int sectionB = (i + 1) * crossSectionVertices;
 
-            for (int j = 0; j < crosssSectionVertices - 1; j++)
+            for (int j = 0; j < crossSectionVertices - 1; j++)
             {
                 int a = sectionA + j;
                 int b = sectionA + j + 1;
@@ -84,14 +89,14 @@ public class MeshGeneration : MonoBehaviour
     {
         Vector3 up = Vector3.up;
 
-        float inner = width * 0.5f * innerInset;
+        float inner = guide.width * 0.5f * guide.innerInset;
 
-        vertices.Add(center + -right * width + up * (wallHeight + verticalOffset));
-        vertices.Add(center + -right * width + up * verticalOffset);
+        vertices.Add(center + -right * guide.width + up * (guide.wallHeight + guide.verticalOffset));
+        vertices.Add(center + -right * guide.width + up * guide.verticalOffset);
         vertices.Add(center + -right * inner);
         vertices.Add(center + right * inner);
-        vertices.Add(center + right * width + up * verticalOffset);
-        vertices.Add(center + right * width + up * (wallHeight + verticalOffset));
+        vertices.Add(center + right * guide.width + up * guide.verticalOffset);
+        vertices.Add(center + right * guide.width + up * (guide.wallHeight + guide.verticalOffset));
     }
 
     Vector3 GetForward(int index)

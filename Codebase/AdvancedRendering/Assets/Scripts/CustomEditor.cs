@@ -7,13 +7,13 @@ public class CustomEditors : Editor
     public override void OnInspectorGUI()
     {
         ChannelGuide script = (ChannelGuide)target;
-        script.CleanUp();
 
         DrawDefaultInspector();
 
         if (GUILayout.Button("Place notes"))
         {
-            GameObject createdNote = script.Test();
+            script.CleanUp();
+            GameObject createdNote = script.Note();
             Selection.activeGameObject = createdNote;
         }
     }
