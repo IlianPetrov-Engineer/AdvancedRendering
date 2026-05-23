@@ -3,9 +3,9 @@ using UnityEngine;
 
 public enum SphereCollisionMode
 {
-    None,
-    Global,
-    UniformGrid
+    None,       //No collision 
+    Global,     //Check every sphere with every other sphere in the scene
+    UniformGrid //Check only nearby spheres using a grid
 }
 
 public class ChannelGuide : MonoBehaviour
@@ -46,7 +46,7 @@ public class ChannelGuide : MonoBehaviour
     #endregion
 
     private float spawnTimer;
-    private List<ParticleData> particles = new List<ParticleData>();
+    [HideInInspector] public List<ParticleData> particles = new List<ParticleData>();
     private List<GameObject> particleObjects = new List<GameObject>();
 
     private bool outdatedSegment = false;
@@ -56,8 +56,14 @@ public class ChannelGuide : MonoBehaviour
     private const float fixedStep = 1f / 120f;
     #endregion
 
+    [HideInInspector] public int channelCollisionsThisFrame;
+    [HideInInspector] public int sphereCollisionsThisFrame;
+
     private void LateUpdate()
     {
+        channelCollisionsThisFrame = 0;
+        sphereCollisionsThisFrame = 0;
+
         CheckNodeChanges();
 
         if (outdatedSegment)
@@ -83,7 +89,7 @@ public class ChannelGuide : MonoBehaviour
     }
 
     #region Channel
-    public GameObject Note()
+    public GameObject Node()
     {
         int lastNote = nodes.Count - 1;
         Vector3 pos;
@@ -95,7 +101,7 @@ public class ChannelGuide : MonoBehaviour
         GameObject newNode = Instantiate(node, pos, Quaternion.identity, transform);
         nodes.Add(newNode);
 
-        for (int i = 0; i < nodes.Count; i++)
+        for (int i = nodes.Count - 1; i >= 0; i--)
         {
             if (nodes[i] == null)
                 nodes.RemoveAt(i);
@@ -178,6 +184,7 @@ public class ChannelGuide : MonoBehaviour
 
         float subDt = deltaTime / movementSubsteps;
 
+        //Move and constrain in sub-steps to reduce tunneling through walls
         for (int i = 0; i < movementSubsteps; i++)
         {
             particleData.position += particleData.velocity * subDt;
@@ -275,6 +282,7 @@ public class ChannelGuide : MonoBehaviour
         );
     }
 
+    //Assigns all particles to their grid cells for fast neighbour lookup
     void BuildSpatialGrid()
     {
         spatialGrid.Clear();
@@ -381,6 +389,8 @@ public class ChannelGuide : MonoBehaviour
 
         particles[indexA] = a;
         particles[indexB] = b;
+
+        sphereCollisionsThisFrame++;
     }
 
     void ChannelCollision(ref ParticleData particleData, ChannelSegment segment)
@@ -448,6 +458,9 @@ public class ChannelGuide : MonoBehaviour
             if (vertical <= floorHeight + 0.001f)
                 wallNormal += up;
 
+            if (vertical >= ceiling - 0.001f)
+                wallNormal -= up;
+
             wallNormal.Normalize();
 
             float intoWall = Vector3.Dot(particleData.velocity, wallNormal);
@@ -458,6 +471,7 @@ public class ChannelGuide : MonoBehaviour
             }
         }
 
+        channelCollisionsThisFrame++;
     }
 
     #endregion
@@ -541,7 +555,7 @@ public class ChannelGuide : MonoBehaviour
         public float length;
     }
 
-    struct ParticleData
+    [HideInInspector] public struct ParticleData
     {
         public Vector3 position;
         public Vector3 velocity;

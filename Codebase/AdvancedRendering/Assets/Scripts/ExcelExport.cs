@@ -1,92 +1,66 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using static UnityEngine.ParticleSystem;
 
 public class ExcelExport : MonoBehaviour
 {
-    string fileName = "";
-    public List<int> testData = new List<int>();
+    [SerializeField] private string testLabel = "";
 
-    private List<BenchmarkFrame> frames = new List<BenchmarkFrame>();
+    [Tooltip("Which run number this is (1-10). Changes the output filename.")]
+    [SerializeField] private int runNumber = 1;
 
+    [Tooltip("How many frames to record before stopping and writing the CSV.")]
+    [SerializeField] private int targetFrames = 1000;
+
+    [Header("References")]
     [SerializeField] private ChannelGuide guide;
 
-    private int channelCollisionCount;
-
-    private int particleCollisionCount;
-
-    void Start()
-    {
-        fileName = Application.dataPath + "/test.csv";
-    }
+    private List<BenchmarkFrame> frames = new List<BenchmarkFrame>();
+    private bool finished = false;
 
     private void Update()
     {
-        if (testData.Count < 10)
+        if (finished) return;
+
+        BenchmarkFrame frameData = new BenchmarkFrame
         {
-            for (int i = 0; i < 10; i++)
-                testData.Add(i);
-        }
+            frame = Time.frameCount,
+            deltaTime = Time.deltaTime,
+            particleCount = guide.particles.Count,
+            channelCollisions = guide.channelCollisionsThisFrame,
+            sphereCollisions = guide.sphereCollisionsThisFrame
+        };
 
-        if (testData.Count == 10)
+        frames.Add(frameData);
+
+        if (frames.Count >= targetFrames)
+        {
             WriteCSV();
-
-        //BenchmarkFrame frameData = new BenchmarkFrame
-        //{
-        //    frame = Time.frameCount,
-        //    deltaTime = Time.deltaTime,
-        //    fps = 1f / Time.deltaTime,
-        //    particleCount = particles.Count,
-        //    channelCollisions = channelCollisionCount,
-        //    particleCollisions = particleCollisionCount
-        //};
-
-        //frames.Add(frameData);
+            finished = true;
+            Debug.Log($"[ExcelExport] Done — {frames.Count} frames written.");
+        }
     }
 
     void WriteCSV()
     {
-        if (testData.Count <= 0)
-            return;
+        string path = Path.Combine(Application.dataPath,$"{testLabel}_run{runNumber}.csv");
 
-        TextWriter tw = new StreamWriter(fileName, false);
-
-        tw.WriteLine("Test number");
-        tw.Close();
-
-        tw = new StreamWriter(fileName, true);
-
-        for (int i = 0; i < testData.Count; i++)
+        using (StreamWriter tw = new StreamWriter(path, false))
         {
-            tw.WriteLine(testData[i]);
+            tw.WriteLine("Frame,DeltaTime,ParticleCount,ChannelCollisions,SphereCollisions");
+
+            foreach (BenchmarkFrame f in frames)
+            {
+                tw.WriteLine(
+                    $"{f.frame}," +
+                    $"{f.deltaTime.ToString("F6", CultureInfo.InvariantCulture)}," +
+                    $"{f.particleCount}," +
+                    $"{f.channelCollisions}," +
+                    $"{f.sphereCollisions}"
+                );
+            }
         }
-
-        tw.Close();
-
-        //TextWriter tw =
-        //new StreamWriter(fileName, false);
-
-        //tw.WriteLine(
-        //    "Frame,DeltaTime,FPS,ParticleCount,ChannelCollisions,ParticleCollisions"
-        //);
-
-        //for (int i = 0; i < frames.Count; i++)
-        //{
-        //    BenchmarkFrame f = frames[i];
-
-        //    tw.WriteLine(
-        //        $"{f.frame}," +
-        //        $"{f.deltaTime}," +
-        //        $"{f.fps}," +
-        //        $"{f.particleCount}," +
-        //        $"{f.channelCollisions}," +
-        //        $"{f.particleCollisions}"
-        //    );
-        //}
-
-        //tw.Close();
     }
 }
 
@@ -95,8 +69,7 @@ public struct BenchmarkFrame
 {
     public int frame;
     public float deltaTime;
-    public float fps;
     public int particleCount;
     public int channelCollisions;
-    public int particleCollisions;
+    public int sphereCollisions;
 }

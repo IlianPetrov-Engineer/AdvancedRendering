@@ -57,7 +57,7 @@ public class MeshGeneration : MonoBehaviour
 
         int crossSectionVertices = 6;
 
-        for (int i = 0; i < guide.nodes.Count - 1; i++)
+        for (int i = 0; i < guide.nodes.Count - 1; i++) ///
         {
             int sectionA = i * crossSectionVertices;
             int sectionB = (i + 1) * crossSectionVertices;
@@ -91,12 +91,12 @@ public class MeshGeneration : MonoBehaviour
 
         float inner = guide.width * 0.5f * guide.innerInset;
 
-        vertices.Add(center + -right * guide.width + up * (guide.wallHeight + guide.verticalOffset));
-        vertices.Add(center + -right * guide.width + up * guide.verticalOffset);
-        vertices.Add(center + -right * inner);
-        vertices.Add(center + right * inner);
-        vertices.Add(center + right * guide.width + up * guide.verticalOffset);
-        vertices.Add(center + right * guide.width + up * (guide.wallHeight + guide.verticalOffset));
+        vertices.Add(center + -right * guide.width + up * (guide.wallHeight + guide.verticalOffset)); //Top Left
+        vertices.Add(center + -right * guide.width + up * guide.verticalOffset); //Bottom Left
+        vertices.Add(center + -right * inner); //Channel Bed Left 
+        vertices.Add(center + right * inner); //Channel Bed Right
+        vertices.Add(center + right * guide.width + up * guide.verticalOffset); //Bottom Right
+        vertices.Add(center + right * guide.width + up * (guide.wallHeight + guide.verticalOffset)); //Top Right
     }
 
     Vector3 GetForward(int index)

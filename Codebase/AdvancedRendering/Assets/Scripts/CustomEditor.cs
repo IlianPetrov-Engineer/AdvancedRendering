@@ -13,7 +13,7 @@ public class CustomEditors : Editor
         if (GUILayout.Button("Place notes"))
         {
             script.CleanUp();
-            GameObject createdNote = script.Note();
+            GameObject createdNote = script.Node();
             Selection.activeGameObject = createdNote;
         }
     }
