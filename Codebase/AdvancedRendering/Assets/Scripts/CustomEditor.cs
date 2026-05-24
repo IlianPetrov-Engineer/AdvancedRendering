@@ -10,11 +10,14 @@ public class CustomEditors : Editor
 
         DrawDefaultInspector();
 
-        if (GUILayout.Button("Place notes"))
+        if (GUILayout.Button("Place nodes"))
         {
+            //Removes any null entries before adding a new node
             script.CleanUp();
-            GameObject createdNote = script.Node();
-            Selection.activeGameObject = createdNote;
+
+            //Creates a new node and immediately select it so the user can position it
+            GameObject createdNode = script.Node();
+            Selection.activeGameObject = createdNode;
         }
     }
 }

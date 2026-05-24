@@ -34,6 +34,7 @@ public class MeshGeneration : MonoBehaviour
         outdatedMesh = true;
     }
 
+    //Rebuilds the full channel mesh by generating a 6-vertex cross-section at each node and connecting adjacent sections with quads.
     public void BuildMesh()
     {
         if (guide.nodes.Count < 2)
@@ -57,7 +58,7 @@ public class MeshGeneration : MonoBehaviour
 
         int crossSectionVertices = 6;
 
-        for (int i = 0; i < guide.nodes.Count - 1; i++) ///
+        for (int i = 0; i < guide.nodes.Count - 1; i++)
         {
             int sectionA = i * crossSectionVertices;
             int sectionB = (i + 1) * crossSectionVertices;

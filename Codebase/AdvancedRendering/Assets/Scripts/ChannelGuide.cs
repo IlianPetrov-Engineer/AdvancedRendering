@@ -23,8 +23,8 @@ public class ChannelGuide : MonoBehaviour
 
     [Header("Sphere Collision")]
     [SerializeField] private SphereCollisionMode collisionMode;
-
     [SerializeField] private float collisionBounce = 0.9f;
+
     [SerializeField] private float velocityTransfer = 0.5f;
 
     [Header("Uniform Grid")]
@@ -54,10 +54,10 @@ public class ChannelGuide : MonoBehaviour
 
     private float simulationTimer = 0f;
     private const float fixedStep = 1f / 120f;
-    #endregion
 
     [HideInInspector] public int channelCollisionsThisFrame;
     [HideInInspector] public int sphereCollisionsThisFrame;
+    #endregion
 
     private void LateUpdate()
     {
@@ -67,36 +67,33 @@ public class ChannelGuide : MonoBehaviour
         CheckNodeChanges();
 
         if (outdatedSegment)
-        {
             BuildSegments();
-        }
 
         simulationTimer += Time.deltaTime;
-
         int substeps = 0;
         const int maxSubsteps = 8;
 
-        while (simulationTimer >= fixedStep &&
-               substeps < maxSubsteps)
+        while (simulationTimer >= fixedStep && substeps < maxSubsteps)
         {
             Simulate(fixedStep);
-
             simulationTimer -= fixedStep;
             substeps++;
         }
 
+        //Sync the gameobject with the simulation data
         RenderParticles();
     }
 
     #region Channel
     public GameObject Node()
     {
-        int lastNote = nodes.Count - 1;
+        int lastNode = nodes.Count - 1;
         Vector3 pos;
+
         if (nodes.Count == 0)
             pos = transform.position;
         else
-            pos = nodes[lastNote].transform.position;
+            pos = nodes[lastNode].transform.position;
 
         GameObject newNode = Instantiate(node, pos, Quaternion.identity, transform);
         nodes.Add(newNode);
@@ -166,6 +163,7 @@ public class ChannelGuide : MonoBehaviour
         particleObjects.Add(obj);
     }
 
+    //Advances a single particle's physics for one fixed timestep. Uses two sub-steps internally to reduce tunneling through channel walls.
     void UpdateParticle(ref ParticleData particleData, float deltaTime)
     {
         if (particleData.currentSegment >= segments.Count)
@@ -221,6 +219,7 @@ public class ChannelGuide : MonoBehaviour
 
             particleData.lifetime -= dt;
 
+            //Remove particles that have expired or left the last segment
             if (particleData.lifetime <= 0 || particleData.currentSegment >= segments.Count)
             {
                 Destroy(particleObjects[i]);
@@ -239,12 +238,12 @@ public class ChannelGuide : MonoBehaviour
             BuildSpatialGrid();
         }
 
-        ChoseCollisionType();
+        ChooseCollisionType();
     }
     #endregion
 
     #region Collision
-    void ChoseCollisionType()
+    void ChooseCollisionType()
     {
         switch (collisionMode)
         {
@@ -313,17 +312,14 @@ public class ChannelGuide : MonoBehaviour
                 {
                     for (int z = -1; z <= 1; z++)
                     {
-                        Vector3Int neighbor =
-                            cell + new Vector3Int(x, y, z);
+                        Vector3Int neighbor = cell + new Vector3Int(x, y, z);
 
                         if (!spatialGrid.ContainsKey(neighbor))
                             continue;
 
-                        List<int> currentParticles =
-                            spatialGrid[cell];
+                        List<int> currentParticles = spatialGrid[cell];
 
-                        List<int> neighborParticles =
-                            spatialGrid[neighbor];
+                        List<int> neighborParticles = spatialGrid[neighbor];
 
                         for (int i = 0; i < currentParticles.Count; i++)
                         {
@@ -368,8 +364,7 @@ public class ChannelGuide : MonoBehaviour
 
         Vector3 relativeVelocity = b.velocity - a.velocity;
 
-        float velocityAlongNormal =
-            Vector3.Dot(relativeVelocity, normal);
+        float velocityAlongNormal = Vector3.Dot(relativeVelocity, normal);
 
         if (velocityAlongNormal > 0)
         {
@@ -393,6 +388,8 @@ public class ChannelGuide : MonoBehaviour
         sphereCollisionsThisFrame++;
     }
 
+    //Constrains a particle to stay within the cross-section of its current channel segment.
+    //Reflects the velocity component into any wall that was hit.
     void ChannelCollision(ref ParticleData particleData, ChannelSegment segment)
     {
         Vector3 forward = segment.direction;

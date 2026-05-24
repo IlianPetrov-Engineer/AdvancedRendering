@@ -7,13 +7,10 @@ public class ExcelExport : MonoBehaviour
 {
     [SerializeField] private string testLabel = "";
 
-    [Tooltip("Which run number this is (1-10). Changes the output filename.")]
     [SerializeField] private int runNumber = 1;
 
-    [Tooltip("How many frames to record before stopping and writing the CSV.")]
     [SerializeField] private int targetFrames = 1000;
 
-    [Header("References")]
     [SerializeField] private ChannelGuide guide;
 
     private List<BenchmarkFrame> frames = new List<BenchmarkFrame>();
@@ -38,7 +35,7 @@ public class ExcelExport : MonoBehaviour
         {
             WriteCSV();
             finished = true;
-            Debug.Log($"[ExcelExport] Done — {frames.Count} frames written.");
+            Debug.Log($"[ExcelExport] Done - {frames.Count} frames written.");
         }
     }
 

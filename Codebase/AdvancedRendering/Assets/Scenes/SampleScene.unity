@@ -781,7 +781,7 @@ MonoBehaviour:
   innerInset: 1
   gravityStrength: 9.81
   particleRadius: 0.1
-  collisionMode: 1
+  collisionMode: 0
   collisionBounce: 0.9
   velocityTransfer: 0.5
   cellSize: 0.5
@@ -794,7 +794,7 @@ MonoBehaviour:
   - {fileID: 154751144}
   - {fileID: 406533910}
   particlePrefab: {fileID: 6212270814731187503, guid: 0396fd5897b7ede42a58906aac30237f, type: 3}
-  particlesPerSecond: 500
+  particlesPerSecond: 100
   particleLifetime: 12
   forceStrength: 15
   damping: 0.98
@@ -1150,9 +1150,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c05c8293ac53ae44bef66ec48610b25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExcelExport
-  testLabel: Test
-  runNumber: 7
-  targetFrames: 250
+  testLabel: Global_500
+  runNumber: 5
+  targetFrames: 200
   guide: {fileID: 684464409}
 --- !u!4 &1963361468
 Transform:
